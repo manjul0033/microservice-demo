@@ -25,7 +25,7 @@ public class ManageWorkoutIdController {
 		
 		String url = "postgres://<url>";
 
-		url ="jdbc:postgresql://echo.db.elephantsql.com:5432/hrlhmrtu";
+		url ="jdbc:postgresql://<url>";
 		Properties props = new Properties();
 		props.setProperty("user","");
 		props.setProperty("password","");
