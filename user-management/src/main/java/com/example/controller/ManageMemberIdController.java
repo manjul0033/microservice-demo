@@ -23,12 +23,12 @@ public class ManageMemberIdController {
 		
 		Connection conn = null;
 		
-		String url = "postgres://hrlhmrtu:0ADjEQq_NSVLXdTddG0KMjL-pKr0cFo9@echo.db.elephantsql.com:5432/hrlhmrtu";
+		String url = "postgres://<url>";
 
-		url ="jdbc:postgresql://echo.db.elephantsql.com:5432/hrlhmrtu";
+		url ="jdbc:postgresql://<url>";
 		Properties props = new Properties();
-		props.setProperty("user","hrlhmrtu");
-		props.setProperty("password","0ADjEQq_NSVLXdTddG0KMjL-pKr0cFo9");
+		props.setProperty("user","");
+		props.setProperty("password","");
 		props.setProperty("ssl","true");
 		try {
 			Class.forName("org.postgresql.Driver"); 
