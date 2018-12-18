@@ -1,0 +1,6 @@
+spring:
+  application:
+    name: workout-microservice
+  cloud:
+    config:
+      uri:  http://localhost:8001  #http://172.29.0.5:8001

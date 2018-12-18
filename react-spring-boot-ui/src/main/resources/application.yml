@@ -1,0 +1,21 @@
+server:
+  port: 9090
+
+management:
+  security:
+    enabled: false
+    
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://localhost:8010/eureka/      #http://169.44.0.206:8010/eureka/
+  instance:
+    prefer-ip-address: true
+
+spring:
+  rabbitmq:
+    host: sidewinder.rmq.cloudamqp.com
+    port: 5672
+    virtual-host: vkctclgr
+    username: vkctclgr
+    password: ALUCr-7-6H-2G-YIEXQw-yDf8trYaNy4

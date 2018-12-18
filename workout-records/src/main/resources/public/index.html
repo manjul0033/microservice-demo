@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>React Flux</title>
+        <script src="https://fb.me/react-0.13.3.js"></script>
+        <script src="https://fb.me/JSXTransformer-0.13.3.js"></script>
+        <script src="http://code.jquery.com/jquery-2.1.4.min.js"></script>
+    </head>
+    <body>
+        <div id="component"></div>
+ 
+        <script type="text/jsx">
+            var JavaEEWSTest = React.createClass({
+                getInitialState: function () {
+                    return {text: ''};
+                },
+                componentDidMount: function(){
+                    $.ajax({
+                        url: "http://localhost:8081/micro/myworkout"
+                    }).then(function(data) {
+                        this.setState({text: data});
+                    }).bind(this)
+                },
+                render: function() {
+                    return <div>Response - {this.state.text}</div>;
+                }
+            });
+ 
+            React.render(<JavaEEWSTest />, document.getElementById('component'));
+ 
+        </script>
+    </body>
+</html>

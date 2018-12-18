@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Fitness Arena</title>
+</head>
+<body>
+ 
+    <script src="https://fb.me/react-15.0.1.js"></script>
+    <script src="https://fb.me/react-dom-15.0.1.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-core/5.8.23/browser.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/2.1.3/toastr.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.6.0/Chart.min.js"></script>
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/2.1.3/toastr.min.css">
+ 	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+ 	
+ 	<div id='root'></div>
+ 	
+    <script type="text/babel">
+
+//--------CHART RENDER CLASS------------------//
+
+class PulseChart extends React.Component {
+  	constructor(props) {
+  	  super(props);
+		this.state = {testValue: 0};
+		this.draw = this.draw.bind(this);
+		this.backToMembers = this.backToMembers.bind(this);
+	}
+	componentDidMount() {
+		this.setState({testValue: 0});
+		this.draw();
+	}
+
+	draw(props) {
+		var rows = [];
+		var self = this;
+		var count = 0;
+		this.props.workout.pulse.forEach(function(pulse){
+				count = count + 1;
+//				self.setState({testValue : self.state.testValue + 1});
+				rows.push(count + ' Sec');
+		});
+		var ctx = document.getElementById('myChart').getContext('2d');
+		var myChart = new Chart(ctx, {
+  			type: 'line',
+  			data: {
+    		labels: rows,
+    		datasets: [{
+      				label: this.props.workout.workoutType+' : '+this.props.workout.workoutName,
+//      				data: [12, 19, 3, 17, 6, 3, 7],
+						data: this.props.workout.pulse,
+      				backgroundColor: "rgba(153,255,51,0.4)"
+    			}]
+  			},
+
+		    options: {
+        		layout: {
+            		padding: {
+                		left: 0,
+                		right: 0,
+                		top: 0,
+                		bottom: 30
+         			}
+        		}
+			}
+		});
+	}
+	backToMembers(props) {
+		alert("fetching members details....");
+		ReactDOM.render(
+			<App />, document.getElementById('root')
+		);
+	}	
+	render() {
+		return (
+ 				<div className="container">
+  					<h1><center>Heart Rate Statistics of member : {this.props.workout.memberId}</center></h1>
+					<h3><center>Workout Type: {this.props.workout.workoutType}</center></h3>
+					<h3><center>Workout Name: {this.props.workout.workoutName}</center></h3>
+  					<div>
+    					<canvas id="myChart" ></canvas>
+  					</div>
+					<center><button className="btn btn-info" onClick={this.backToMembers}>Back To Members</button></center>
+				</div>
+		);
+	}
+}
+
+//----------------COUNTDOWN CLASS----------------------//
+
+	class CountDown extends React.Component {
+		constructor(props) {
+    		super(props);
+			this.state = {formDisplay: true};
+			this.state = {workoutName: ''};
+			this.state = {workoutType: ''};
+			this.state = {testValue: 0};
+    		this.state = {date: new Date()};
+			alert("in CountDown Class : "+this.props.member.memberId);
+			this.stopWorkout = this.stopWorkout.bind(this);
+			this.handleChange = this.handleChange.bind(this);
+    		this.handleSubmit = this.handleSubmit.bind(this);
+    		this.postingData = this.postingData.bind(this);
+			this.backToMembers = this.backToMembers.bind(this);
+  		}
+
+  		componentDidMount() {
+			this.setState({testValue: 0});
+			this.setState({formDisplay: true});
+  		}
+
+  		componentWillUnmount() {
+    		clearInterval(this.timerID);
+  		}
+
+  		tick() {
+    		this.setState({
+      		date: new Date()
+    		});
+			this.setState({testValue : this.state.testValue + 1});
+
+			if(this.state.testValue > 30) {
+				clearInterval(this.timerID);
+				this.stopWorkout();
+			}
+  		}
+
+		stopWorkout(props) {
+			var self = this;
+			clearInterval(this.timerID);
+			$.ajax({
+				url: "/ibm/fitness-arena/myworkout/stop",
+				type: "GET",
+				dataType: "json",
+				cache: "true"
+			}).then(function (data) {
+//					self.setState({members: data});
+				});
+			alert("Ending Workout "+this.props.member.memberId);
+			ReactDOM.render(
+				<WorkoutTable memberId={this.props.member.memberId} />, document.getElementById('root')
+			);
+		}
+		backToMembers(props) {
+			ReactDOM.render(
+				<App />, document.getElementById('root')
+			);
+		}
+
+  		handleChange(event) {
+		   const target = event.target;
+		   const value = target.type === 'checkbox' ? target.checked : target.value;
+ 		   const name = target.name;
+
+ 		   this.setState({
+ 		     [name]: value
+ 		   });
+  		}
+
+		handleSubmit(event) {
+    		alert('Workout Details submitted: '+ this.props.member.memberId + ' '+ this.state.workoutType +' '+ this.state.workoutName );
+			event.preventDefault();
+			this.setState({formDisplay: false});
+    		this.postingData();
+			    		this.timerID = setInterval(
+      		() => this.tick(),
+      		1000
+    		);
+  		}
+
+		postingData(props) {
+			alert("Posting workout Start Details for Date : "+this.state.date.toString());
+			var self = this;
+			var jsondata = {
+				"memberId": this.props.member.memberId,
+				"workoutType": this.state.workoutType,
+				"workoutName": this.state.workoutName,
+				"date": this.state.date.toDateString(),
+				"time": this.state.date.toLocaleTimeString()
+			};
+
+			  // Submit form via jQuery/AJAX
+			$.ajax({
+				type: "POST",
+				contentType: "application/json",
+				url: "/ibm/fitness-arena/myworkout/start",
+				data: JSON.stringify(jsondata),
+				dataType: "json",
+		       	cache: false,
+		        timeout: 600000,
+		        success(data) {
+	            	var json = "<h4>Ajax Response</h4><pre>"
+                	+ JSON.stringify(data, null, 4) + "</pre>";
+					alert("Accepted !!!!"+json);
+ 	           		console.log("SUCCESS : ", json);
+
+ 		       },
+		       error(e) {
+ 	           		var json = "<h4>Ajax Response</h4><pre>"
+               		+ e.responseText + "</pre>";
+					alert("Workout Details sent Succefully !!!");
+ 	           		console.log("ERROR : ", e);
+
+ 		       }
+			});
+				
+		}
+
+  		render() {
+			
+			if(this.state.formDisplay) {
+				return (
+					<div className="container">
+						<form onSubmit={this.handleSubmit}>
+							<table className="table table-striped">
+								<thead>
+									<tr><center><h1>Hello, {this.props.member.firstName} {this.props.member.lastName}</h1></center></tr>
+									<tr><center><h2>Lets Have Some Workout !!!</h2></center></tr>
+									<tr></tr>
+									<tr><center><h2>Enter Workout Details</h2></center></tr>
+								</thead>
+								<tbody>
+									<tr><th><center>Workout Name :<input name="workoutName" type="text" value={this.state.workoutName} onChange={this.handleChange} /></center></th></tr>
+									<tr><th><center>Workout Type :<input name="workoutType" type="text" value={this.state.workoutType} onChange={this.handleChange} /></center></th></tr>
+									<tr><th><center><input className="btn btn-info" type="submit" value="Submit" /></center></th></tr>
+								</tbody>
+							</table>
+						</form>
+						<center><button className="btn btn-info" onClick={this.backToMembers}>Back To Members</button></center>
+					</div>
+				);
+			}
+			else {
+    			return (
+      				<div className="container">
+						<table className="table table-striped">
+								<thead>
+									<tr><center><h1>Great, {this.props.member.firstName} {this.props.member.lastName}</h1></center></tr>
+								</thead>
+								<tbody>
+        							<tr><th><center><h2>Your workout has started, Good going !!!</h2></center></th></tr>
+        							<tr><th><center><h3>Your are doing workout from {this.state.testValue} seconds</h3></center></th></tr>
+        							<tr><th><center><h3>Today is {this.state.date.toDateString()}.</h3></center></th></tr>
+        							<tr><th><center><h3>Time is {this.state.date.toLocaleTimeString()}.</h3></center></th></tr>
+									<tr><th><center><button className="btn btn-info" onClick={this.stopWorkout}>Stop Workout</button></center></th></tr>
+								</tbody>
+							</table>
+      				</div>
+  		  		);
+			}
+  		}
+	}
+
+
+
+
+//----------MEMBERS FUNCTION------------------//
+
+		class Member extends React.Component {
+  			constructor(props) {
+  			  super(props);
+				this.state = {workouts: [], showWorkout: false};
+				this.invokeWorkoutDetails = this.invokeWorkoutDetails.bind(this);
+				this.startWorkout = this.startWorkout.bind(this);
+			}
+			componentDidMount() {
+//				this.loadWorkoutDetails();
+			}
+			componentWillUnmount() {
+
+			}
+		
+			invokeWorkoutDetails(props) {
+//					this.loadWorkoutDetails();
+					this.setState({showWorkout: true});
+					alert("fetching workout records.... "+ this.props.member.memberId);
+					ReactDOM.render(
+						<WorkoutTable memberId={this.props.member.memberId} />, document.getElementById('root')
+					);
+			}
+			startWorkout(props) {
+				alert("Starting Workout");
+				ReactDOM.render(
+						<CountDown member={this.props.member} />, document.getElementById('root')
+				);
+			}
+			render() {
+					if(!this.state.showWorkout && (this.props.member.memberId != null)) {
+							return (
+								<tr>
+									<td>{this.props.member.memberId}</td>
+									<td>{this.props.member.firstName} {this.props.member.lastName}</td>
+									<td>{this.props.member.gender}</td>
+									<td>{this.props.member.contact}</td>
+									<td>{this.props.member.address}</td>
+									<td><button className="btn btn-info" onClick={this.startWorkout}>Start Workout</button> </td>
+									<td><button className="btn btn-info" onClick={this.invokeWorkoutDetails}>Get Statistics</button> </td>
+								</tr>
+							);
+					}
+					else {
+							return null;
+					}
+			}
+
+		}
+              
+		class MemberTable extends React.Component {
+  			constructor(props) {
+  			  super(props);
+			  this.backToStart = this.backToStart.bind(this);
+			}
+			componentDidMount() {
+
+			}
+			componentWillUnmount() {
+
+			}
+			backToStart(props) {
+//				alert("fetching members details....");
+				ReactDOM.render(
+					<StartApp />, document.getElementById('root')
+				);
+			}
+			render() {
+							var rows = [];
+							this.props.members.forEach(function(member){
+								rows.push(<Member member={member} />);
+							});
+							return (
+								<div className="container">
+								  <table className="table table-striped">
+									<thead>
+										<tr>
+											<th>Member Id</th>
+											<th>Member Name</th>
+											<th>Gender</th> 
+											<th>Contact Detail</th>
+											<th>Address</th>
+											<th>Start Workout</th>
+											<th>Workout Statistics</th>
+										</tr>
+									</thead>
+									<tbody>{rows}</tbody>
+								  </table>
+								  <center><button className="btn btn-info" onClick={this.backToStart}>Back To Start</button></center>
+								</div>
+							);
+			}
+		}
+
+//----------------WORKOUT CLASS----------------//
+
+		class Workout extends React.Component {
+  			constructor(props) {
+  			  super(props);
+			  this.showChart = this.showChart.bind(this);
+			}
+			componentDidMount() {
+
+			}
+			componentWillUnmount() {
+
+			}
+			showChart(props) {
+				ReactDOM.render(
+					<PulseChart workout={this.props.workout} />, document.getElementById('root')
+				);
+			}
+			render() {
+							return (
+								<tr>
+									<td>{this.props.workout.workoutId}</td>
+									<td>{this.props.workout.memberId}</td>
+									<td>{this.props.workout.date}</td>
+									<td>{this.props.workout.time}</td>
+									<td>{this.props.workout.workoutName}</td>
+									<td>{this.props.workout.workoutType}</td>
+									<td>{this.props.workout.pulse.join(", ")}</td>
+									<td><button className="btn btn-info" onClick={this.showChart} >Show Statistics</button></td>
+								</tr>
+							);
+			}
+		}
+
+		class WorkoutTable extends React.Component {
+  			constructor(props) {
+  			  super(props);
+				this.state = {workouts: []};
+				this.backToMembers = this.backToMembers.bind(this);
+				this.loadWorkoutDetails = this.loadWorkoutDetails.bind(this);
+			}
+			componentDidMount() {
+				this.loadWorkoutDetails();
+			}
+			componentWillUnmount() {
+
+			}
+			loadWorkoutDetails(props) {
+//								alert("from workoutTabel: "+this.props.memberId);
+				var self = this;
+				$.ajax({
+//					url: "http://localhost:8081/myworkout?memberId="+this.props.memberId
+//					url: "http://localhost:8081/myworkout"
+					url: "/ibm/fitness-arena/myworkout?memberId="+this.props.memberId
+				}).then(function(data) {
+						self.setState({workouts: data});
+					});
+			}	
+			backToMembers(props) {
+				alert("fetching members details....");
+				ReactDOM.render(
+					<App />, document.getElementById('root')
+				);
+			}
+			render() {
+//						return <div>{this.props.memberId}</div>
+
+							var rows = [];
+							this.state.workouts.forEach(function(workout){
+								rows.push(<Workout workout={workout} />);
+							});
+							return (
+								<div className="container">
+								  <table className="table table-striped">
+									<thead>
+										<tr>
+											<th>Workout ID</th>
+											<th>Member ID</th>
+											<th>Date</th> 
+											<th>Time</th>
+											<th>Workout Name</th>
+											<th>Workout Type</th>
+											<th>Heart Rate</th>
+											<th>Heart Rate Statistics</th> 
+										</tr>
+									</thead>
+									<tbody>{rows}</tbody>
+								  </table>
+									<center><button className="btn btn-info" onClick={this.backToMembers}>Back To Members</button></center>
+								</div>
+							);
+			}
+		}
+
+
+		
+//---------------REGISTRATION CLASS-------------------//
+
+		class RegistrationForm extends React.Component {
+  			constructor(props) {
+  			  super(props);
+				this.state = {firstName: ''};
+				this.state = {lastName: ''};
+				this.state = {gender: ''};
+				this.state = {contact: ''};
+				this.state = {address: ''};				
+				this.handleChange = this.handleChange.bind(this);
+    			this.handleSubmit = this.handleSubmit.bind(this);
+    			this.postingData = this.postingData.bind(this);
+				this.backToStart = this.backToStart.bind(this);
+  			}
+
+  			handleChange(event) {
+		    const target = event.target;
+		    const value = target.type === 'checkbox' ? target.checked : target.value;
+ 		   const name = target.name;
+
+ 		   this.setState({
+ 		     [name]: value
+ 		   });
+  			}
+
+  			handleSubmit(event) {
+    			alert('A name was submitted: '+ this.state.firstName + ' '+ this.state.lastName +' '+ this.state.gender +' '+ this.state.contact +' '+ this.state.address );
+				event.preventDefault();
+    			this.postingData();
+  			}
+
+			postingData(props) {
+				alert("posting");
+				var self = this;
+			  var jsondata = {
+				"memberId": "105",
+				"firstName": this.state.firstName,
+				"lastName": this.state.lastName,
+				"gender": this.state.gender,
+				"contact": this.state.contact,
+				"address": this.state.address
+			  };
+
+			  // Submit form via jQuery/AJAX
+			  $.ajax({
+				type: "POST",
+				contentType: "application/json",
+//			    url: "http://localhost:8081/myworkout",
+				url: "/ibm/fitness-arena/members",
+//				crossDomain: true,
+//			    data: jsondata,
+				data: JSON.stringify(jsondata),
+				dataType: "json",
+//				headers: { 
+//				'Accept': 'application/json',
+//				'Content-Type': 'application/json',
+//				'Access-Control-Allow-Origin': '*'
+//				}
+		       cache: false,
+		        timeout: 600000,
+		        success(data) {
+	            var json = "<h4>Ajax Response</h4><pre>"
+                + JSON.stringify(data, null, 4) + "</pre>";
+				alert("Failed !!!");
+ 	           console.log("SUCCESS : ", data);
+
+ 		       },
+		        error(e) {
+				ReactDOM.render(
+					<App />, document.getElementById('root')
+				);
+ 	           var json = "<h4>Ajax Response</h4><pre>"
+                + e.responseText + "</pre>";
+				alert("Registered");
+ 	           console.log("ERROR : ", e);
+
+ 		       }
+			  });
+//			  .done(function(data) {
+//				alert("Registered");
+//			    self.clearForm();
+//			  })
+//			  .fail(function(jqXhr) {
+//			    console.log('failed to register');
+//				alert("Failed !!!!");
+//			  });
+				
+			}
+			backToStart(props) {
+//				alert("fetching members details....");
+				ReactDOM.render(
+					<StartApp />, document.getElementById('root')
+				);
+			}
+			render() {
+				return (
+					<div className="container">
+						<form onSubmit={this.handleSubmit}>
+							<table className="table table-striped">
+								<thead>
+									<tr><center><h2>Registration Form</h2></center></tr>
+								</thead>
+								<tbody>
+									<tr><th><center>First Name :<input name="firstName" type="text" value={this.state.firstName} onChange={this.handleChange} /></center></th></tr>
+									<tr><th><center>Last Name :<input name="lastName" type="text" value={this.state.lastName} onChange={this.handleChange} /></center></th></tr>
+									<tr><th><center>Gender :<select name="gender" value={this.state.gender} onChange={this.handleChange}>
+																<option gender="">--select--</option>
+													            <option gender="Male">Male</option>
+							            						<option gender="Female">Female</option>
+            													<option gender="Other">Other</option>
+															</select></center></th></tr>
+
+									<tr><th><center>Contact :<input name="contact" type="text" value={this.state.contact} onChange={this.handleChange} /></center></th></tr>
+									<tr><th><center>Address :<textarea name="address" type="text" value={this.state.address} onChange={this.handleChange} /></center></th></tr>
+									<tr><th><center><input className="btn btn-info" type="submit" value="Submit" /></center></th></tr>
+								</tbody>
+							</table>
+						</form>
+						<center><button className="btn btn-info" onClick={this.backToStart}>Back To Start</button></center>
+					</div>
+				);
+			}
+
+		} 
+
+//--------------START PAGE FUNCTION---------------------//
+
+		class StartApp extends React.Component {
+  			constructor(props) {
+  			  super(props);
+			  this.Registration = this.Registration.bind(this);
+			  this.MembersList = this.MembersList.bind(this);
+			}
+			componentDidMount() {
+
+			}
+			componentWillUnmount() {
+
+			}
+			Registration() {
+				
+				ReactDOM.render(
+					<RegistrationForm />, document.getElementById('root')
+				);
+			}
+
+			MembersList() {
+				alert("Fetching Members Data....");
+				ReactDOM.render(
+					<App />, document.getElementById('root')
+				);
+			}
+
+			render() {
+				return (
+					<div className="container">
+						<table className="table table-striped">
+									<thead>
+										<tr><center><h1>Welcome to Fitness Arena</h1></center></tr>
+										<tr></tr>
+									</thead>
+						</table>
+						<table className="table table-striped">
+									<tbody>
+										<tr>
+											<th><center><button className="btn btn-info" onClick={this.Registration}>New Member Registration</button></center></th>
+										</tr>
+										<tr>
+											<th><center><button className="btn btn-info" onClick={this.MembersList}>Members List</button></center></th>
+										</tr>
+									</tbody>
+						</table>
+					</div>
+				);
+			}
+		
+		} 
+
+//------------------APP FUNCTION-----------------------------//
+
+		class App extends React.Component {
+  			constructor(props) {
+  			  super(props);
+				this.state= {members: []};
+				this.loadMembersFromServer = this.loadMembersFromServer.bind(this);
+				this.loadMembersFromServer();
+			}
+
+			loadMembersFromServer(props) {
+				var self = this;
+				$.ajax({
+//					url: "http://localhost:8081/myworkout"
+					url: "/ibm/fitness-arena/members",
+					type: "GET",
+					dataType: "json",
+					cache: "true"
+				}).then(function (data) {
+						self.setState({members: data});
+					});
+			}
+
+			componentDidMount() {
+//				this.loadMembersFromServer();				
+			}
+			componentWillUnmount() {
+
+			}
+			render() {
+				return (<MemberTable members={this.state.members}/>); 
+			}
+		}
+
+		ReactDOM.render(
+			<StartApp />, document.getElementById('root')
+		);
+	</script>
+</body>
+</html>

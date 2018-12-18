@@ -1,0 +1,41 @@
+# Server configuration
+server:
+  port: 8082
+#  context-path: /micro
+management:
+  security:
+    enabled: false
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://localhost:8010/eureka/  #http://169.44.0.206:8010/eureka/
+  instance:
+    prefer-ip-address: true
+
+# Cloudant Confiugration for cloudant DB Nicroservices
+#cloudant:
+#  username: 0a1046a5-3044-456b-98f4-1ba4ca2a49d2-bluemix
+#  password: 8ec3da7375cc6aeee3d97ed2aa10e98d1f17394115b0c3d2a6aeba1a52c45820
+#  host: https://0a1046a5-3044-456b-98f4-1ba4ca2a49d2-bluemix.cloudant.com
+  
+### Main DB For cloudant DB for Local
+#cloudant:
+#  username: 75d3fd99-6142-46e7-9ad4-d156d9e63e86-bluemix
+#  password: a77e8434b683bf80221e6e2557cc40e46e29b2e485bbaf45743e32798a1e31ad
+#  host: https://75d3fd99-6142-46e7-9ad4-d156d9e63e86-bluemix.cloudant.com
+
+
+#Shashank's cloudant DB
+#cloudant:
+#  username: 8aab2ebb-d4a1-45f0-a033-6039eef90af5-bluemix
+#  password: 7d72f0e034a817704f00fb04b3ca1802a18328b148b7188d0eba2eb942c303ea
+#  host: https://8aab2ebb-d4a1-45f0-a033-6039eef90af5-bluemix.cloudant.com
+
+spring:
+  rabbitmq:
+    host: sidewinder.rmq.cloudamqp.com
+    port: 5672
+    virtual-host: vkctclgr
+    username: vkctclgr
+    password: ALUCr-7-6H-2G-YIEXQw-yDf8trYaNy4

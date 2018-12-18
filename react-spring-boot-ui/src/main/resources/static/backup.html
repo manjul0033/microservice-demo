@@ -1,0 +1,142 @@
+		constructor(props) {
+    		super(props);
+    		this.state = {date: new Date()};
+    		this.state = {workoutType: ''};
+    		this.state = {workoutName: ''};
+			alert("in CountDown Class : "+this.props.member.memberId);
+			this.stopWorkout = this.stopWorkout.bind(this);
+  		}
+		componentDidMount() {
+    		this.timerID = setInterval(
+      		() => this.tick(),
+      		1000
+    		);
+  		}
+  		componentWillUnmount() {
+    		clearInterval(this.timerID);
+  		}
+
+  		tick() {
+    		this.setState({
+      		date: new Date()
+    		});
+		}
+		stopWorkout(props) {
+			alert("Ending Workout");
+			ReactDOM.render(
+				<WorkoutTable memberId={this.props.member.memberId} />, document.getElementById('root')
+			);
+		}
+
+
+
+  		render() {
+    		return (
+      			<div>
+        			<center><h1>Hello, {this.props.member.firstName} {this.props.member.lastName}</h1></center>
+        			<center><h2>Lets Have Some Workout</h2></center>
+        			<center><h3>Today is {this.state.date.toDateString()}.</h3></center>
+        			<center><h3>Time is {this.state.date.toLocaleTimeString()}.</h3></center>
+					<center><button className="btn btn-info" onClick={this.stopWorkout}>Stop Workout</button></center>
+      			</div>
+  		  	);
+  		}
+
+
+//			this.handleChange = this.handleChange.bind(this);
+//    		this.handleSubmit = this.handleSubmit.bind(this);
+//    		this.postingData = this.postingData.bind(this);
+
+  		handleChange(event) {
+		   const target = event.target;
+		   const value = target.type === 'checkbox' ? target.checked : target.value;
+ 		   const name = target.name;
+
+ 		   this.setState({
+ 		     [name]: value
+ 		   });
+  		}
+
+		handleSubmit(event) {
+    		alert('Workout Details submitted: '+ this.props.member.memberId + ' '+ this.state.workoutType +' '+ this.state.workoutName );
+			event.preventDefault();
+//    		this.postingData();
+  		}
+
+		postingData(props) {
+			alert("Posting workout Start Details");
+			var self = this;
+			this.setState({startDate: this.state.date.toDateString()},{startTime: this.state.date.toLocaleTimeString()});
+			var jsondata = {
+				"memberId": this.props.member.memberId,
+				"workoutType": this.state.workoutType,
+				"workoutName": this.state.workoutName,
+				"startdate": this.state.startDate,
+				"time": this.state.startTime
+			};
+
+			  // Submit form via jQuery/AJAX
+			$.ajax({
+				type: "POST",
+				contentType: "application/json",
+				url: "/ibm/fitness-arena/members",
+				data: JSON.stringify(jsondata),
+				dataType: "json",
+		       	cache: false,
+		        timeout: 600000,
+		        success(data) {
+	            	var json = "<h4>Ajax Response</h4><pre>"
+                	+ JSON.stringify(data, null, 4) + "</pre>";
+					alert("Failed !!!");
+ 	           		console.log("SUCCESS : ", data);
+
+ 		       },
+		       error(e) {
+					ReactDOM.render(
+						<App />, document.getElementById('root')
+					);
+ 	           		var json = "<h4>Ajax Response</h4><pre>"
+               		+ e.responseText + "</pre>";
+					alert("Registered");
+ 	           		console.log("ERROR : ", e);
+
+ 		       }
+			});
+				
+		}
+
+
+
+
+self.setState({members: data._embedded.members});
+
+
+
+
+
+							var rows = [];
+							this.props.members.forEach(function(member){
+								rows.push(<Member member={member} />);
+							});
+							return (
+								<table>
+									<thead>
+										<tr>
+											<th>Member Name</th>
+											<th>Member Id</th>
+											<th>Date</th>
+										</tr>
+									</thead>
+									<tbody>{rows}</tbody>
+								</table>
+							);
+							
+							
+		var MEMBERS = [
+		  {name: 'Joe Biden', id: 001, date: '12/31/2011'},
+		  {name: 'President Obama', id: 002, date: '11/13/2013'},
+		  {name: 'Crystal Mac', id: 004, date: '12/12/2017'},
+		  {name: 'James Henry', id: 003, date: '06/17/2017'}
+		];
+							
+										<MemberTable members={MEMBERS} />, document.getElementById('root')

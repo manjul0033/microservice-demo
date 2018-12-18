@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>React + Spring</title>
+</head>
+<body>
+ 
+    <script src="https://fb.me/react-15.0.1.js"></script>
+    <script src="https://fb.me/react-dom-15.0.1.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-core/5.8.23/browser.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/2.1.3/toastr.min.js"></script>
+	
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/2.1.3/toastr.min.css">
+ 	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+ 	
+ 	<div id='root'></div>
+ 	
+    <script type="text/babel">
+		var Member = React.createClass({
+						render: function() {
+							return (
+								<tr>
+									<td>{this.props.member.personName}</td>
+									<td>{this.props.member.memberId}</td>
+									<td>{this.props.member.date}</td>
+									<td> <MyWorkout ref="app"/> <button className="btn btn-info" onClick={()=>this.refs.app.loadWorkoutDetails(this.props.member.memberId)}>Get Statistics</button> </td>
+								</tr>
+							);
+						},
+						invokeWorkoutDetails: function() {
+							App.invokeWorkout(this.props.member.memberId);
+						}
+		});
+              
+		var MemberTable = React.createClass({
+						render: function() {
+							var rows = [];
+							this.props.members.forEach(function(member){
+								rows.push(<Member member={member} />);
+							});
+							return (
+								<div className="container">
+								  <table className="table table-striped">
+									<thead>
+										<tr>
+											<th>Member Name</th>
+											<th>Member Id</th>
+											<th>Date</th> 
+											<th>Workout Statistics</th>
+										</tr>
+									</thead>
+									<tbody>{rows}</tbody>
+								  </table>
+								</div>
+							);
+						}
+		});
+
+
+		var Workout = React.createClass({
+						render: function() {
+							return (
+								<tr>
+									<td>{this.props.workout.workoutName}</td>
+									<td>{this.props.workout.workoutType}</td>
+									<td>{this.props.workout.pulse}</td>
+									<td>{this.props.workout.rpm}</td>
+									<td>{this.props.workout.speed}</td>
+								</tr>
+							);
+						}
+		});
+
+		var WorkoutTable = React.createClass({
+						render: function() {
+							var rows = [];
+							this.props.workout.forEach(function(workout){
+								rows.push(<Workout workout={workout} />);
+							});
+							return (
+								<div className="container">
+								  <table className="table table-striped">
+									<thead>
+										<tr>
+											<th>Workout Name</th>
+											<th>Workout Type</th>
+											<th>Pulse</th> 
+											<th>RPM</th>
+											<th>Speed</th>
+										</tr>
+									</thead>
+									<tbody>{rows}</tbody>
+								  </table>
+								</div>
+							);
+						}
+		});
+
+		var MyWorkout = React.createClass({
+
+			loadWorkoutDetails: function (memberId) {
+				alert(memberId);
+//				return {display: false };
+			},
+			render: function() {
+				return (<div></div>);
+//				if(this.state.display==false) return (<WorkoutTable workout={this.state.workout}/>);
+//				else return (<div></div>);
+				
+			}
+		
+		});
+		
+		var App = React.createClass({
+
+			statics: {display: true},
+
+			loadMembersFromServer: function () {
+				var self = this;
+				$.ajax({
+					url: "http://localhost:8081/myworkout"
+				}).then(function (data) {
+						self.setState({members: data});
+					});
+			},
+
+			loadWorkoutDetails: function (memberId) {
+				var self = this;
+				$.ajax({
+//					url: "http://localhost:8081/myworkout?memberId="+memberId
+					url: "http://localhost:8081/myworkout"
+				}).then(function (data) {
+						self.setState({workout: data});
+						alert(data);
+					});
+			},
+							
+			getInitialState: function () {
+				return {members: []};
+//				return {workout: [], display: true};
+			},
+
+			componentDidMount: function () {
+				this.loadMembersFromServer();				
+			},
+			
+			componentDidUpdate: function () {
+				this.loadWorkoutDetails();
+			},
+			
+			render() {
+//				if(this.state.display==false) return (<WorkoutTable workout={this.state.workout}/>);
+//				else 
+				return (<MemberTable members={this.state.members}/>); 
+			}
+		});
+
+		ReactDOM.render(
+			<App />, document.getElementById('root')
+		);
+	</script>
+</body>
+</html>
